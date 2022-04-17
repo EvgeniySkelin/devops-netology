@@ -54,11 +54,10 @@ systemd─┬─VBoxService───8*[{VBoxService}]
 Терминал 1:
 ```
 vagrant@vagrant:~$ tty
-/dev/pts/1
+/dev/pts/2
 vagrant@vagrant:~$ who
-vagrant  tty1         2021-11-20 14:19
-vagrant  pts/1        2021-11-20 14:10 (10.0.2.2)
-vagrant  pts/2        2021-11-20 14:11 (10.0.2.2)
+vagrant  pts/1        2022-04-17 07:11 (10.0.2.2)
+root  pts/2        2022-04-17 07:18 (10.0.2.2)
 vagrant@vagrant:~$ echo 123321 >/dev/tty1
 vagrant@vagrant:~$
 ```
@@ -68,12 +67,12 @@ vagrant@vagrant:~$
 #### Ответ:
 Команда создаст дескриптор 5 и перенаправит его в stdout:
 ```
-vagrant@vagrant:~$ ls -la /proc/$$/fd/5
-lrwx------ 1 vagrant vagrant 64 Nov 20 14:41 /proc/13710/fd/5 -> /dev/pts/1
+root@vagrant:~$ ls -la /proc/$$/fd/5
+lrwx------ 1 lrwx------ 1 root root 64 Apr 17 07:30 /proc/14238/fd/5 -> /dev/pts/2
 ```
 При выполнении `echo netology > /proc/$$/fd/5`:
 ```
-vagrant@vagrant:~$ echo netology > /proc/$$/fd/5
+root@vagrant:~$ echo netology > /proc/$$/fd/5
 netology
 ```
 Происходит так по той причине, что дескриптор 5 в который мы выводим _echo_ перенаправлен в stdout
