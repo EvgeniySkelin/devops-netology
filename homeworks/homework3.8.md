@@ -221,7 +221,7 @@ vagrant@vagrant:~$ ip a
        valid_lft forever preferred_lft forever
     inet6 fe80::a84c:ccff:feac:c123/64 scope link
        valid_lft forever preferred_lft forever
-
+```
 ## 3. Проверьте открытые TCP порты в Ubuntu, какие протоколы и приложения используют эти порты? Приведите несколько примеров.
 ### Решение:
 ```
