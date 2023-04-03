@@ -36,7 +36,7 @@
 * VirtualBox
 * Vagrant
 * Ansible
-
+* Terraform
 _Приложить вывод команд установленных версий каждой из программ, оформленный в markdown._
 
 ### Ответ:
@@ -45,6 +45,8 @@ skelin_ei@homework30:~/vagrant$ vboxmanage --version
 6.1.34_Ubuntur150636
 skelin_ei@homework30:~/vagrant$ vagrant --version
 Vagrant 2.2.6
+skelin_ei@homework30:~/vagrant$ terraform -v
+Terraform v1.4.4
 skelin_ei@homework30:~/vagrant$ ansible --version
 ansible 2.9.6
   config file = /etc/ansible/ansible.cfg
