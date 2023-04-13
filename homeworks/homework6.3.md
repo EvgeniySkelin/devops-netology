@@ -51,8 +51,8 @@ services:
 - Восстановление из backup
 
 ```commandline
-root@homework30:/sql# docker exec -it mysql bash
-bash-4.4# mysql -u root -p test_db < /media/mysql/backup/test_data.sql
+root@pve-test:~# docker exec -it mysql bash
+bash-4.4# mysql -u root -p test_db < /media/mysql/backup/test_dump.sql
 Enter password:
 ```
 - Перейдите в управляющую консоль mysql внутри контейнера.
@@ -61,10 +61,10 @@ Enter password:
 bash-4.4# mysql -u root -p
 Enter password:
 Welcome to the MySQL monitor.  Commands end with ; or \g.
-Your MySQL connection id is 9
-Server version: 8.0.31 MySQL Community Server - GPL
+Your MySQL connection id is 10
+Server version: 8.0.32 MySQL Community Server - GPL
 
-Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+Copyright (c) 2000, 2023, Oracle and/or its affiliates.
 
 Oracle is a registered trademark of Oracle Corporation and/or its
 affiliates. Other names may be trademarks of their respective
@@ -124,16 +124,16 @@ For server side help, type 'help contents'
 ```commandline
 mysql> \s
 --------------
-mysql  Ver 8.0.31 for Linux on x86_64 (MySQL Community Server - GPL)
+mysql  Ver 8.0.32 for Linux on x86_64 (MySQL Community Server - GPL)
 
-Connection id:          9
+Connection id:          10
 Current database:
 Current user:           root@localhost
 SSL:                    Not in use
 Current pager:          stdout
 Using outfile:          ''
 Using delimiter:        ;
-Server version:         8.0.31 MySQL Community Server - GPL
+Server version:         8.0.32 MySQL Community Server - GPL
 Protocol version:       10
 Connection:             Localhost via UNIX socket
 Server characterset:    utf8mb4
@@ -142,9 +142,9 @@ Client characterset:    latin1
 Conn.  characterset:    latin1
 UNIX socket:            /var/run/mysqld/mysqld.sock
 Binary data as:         Hexadecimal
-Uptime:                 5 min 53 sec
+Uptime:                 13 min 54 sec
 
-Threads: 2  Questions: 35  Slow queries: 0  Opens: 138  Flush tables: 3  Open tables: 56  Queries per second avg: 0.099
+Threads: 2  Questions: 35  Slow queries: 0  Opens: 138  Flush tables: 3  Open tables: 56  Queries per second avg: 0.041
 --------------
 ```
 
@@ -154,6 +154,8 @@ Threads: 2  Questions: 35  Slow queries: 0  Opens: 138  Flush tables: 3  Open ta
 mysql> USE test_db;
 Reading table information for completion of table and column names
 You can turn off this feature to get a quicker startup with -A
+
+Database changed
 ```
 
 - Приведите в ответе количество записей с price > 300:
@@ -194,14 +196,14 @@ mysql> CREATE USER 'test'@'localhost'
     -> PASSWORD EXPIRE INTERVAL 180 DAY
     -> FAILED_LOGIN_ATTEMPTS 3 PASSWORD_LOCK_TIME 2
     -> ATTRIBUTE '{"first_name":"James", "last_name":"Pretty"}';
-Query OK, 0 rows affected (0.08 sec)
+Query OK, 0 rows affected (0.01 sec)
 ```
 
 - Предоставьте привелегии пользователю `test`:
 
 ```commandline
 mysql> GRANT SELECT ON test_db.* TO test@localhost;
-Query OK, 0 rows affected, 1 warning (0.07 sec)
+Query OK, 0 rows affected, 1 warning (0.01 sec)
 ```
 
 - Используя таблицу INFORMATION_SCHEMA.USER_ATTRIBUTES получите данные:
@@ -232,46 +234,48 @@ mysql> SELECT * FROM INFORMATION_SCHEMA.USER_ATTRIBUTES WHERE USER = 'test';
 - Исследуйте, какой `engine` используется в таблице БД `test_db`
 
 ```commandline
+mysql> SELECT table_schema,table_name,engine FROM information_schema.tables WHERE table_schema = DATABASE();
 +--------------+------------+--------+
 | TABLE_SCHEMA | TABLE_NAME | ENGINE |
 +--------------+------------+--------+
 | test_db      | orders     | InnoDB |
 +--------------+------------+--------+
-1 row in set (0.01 sec)
+1 row in set (0.00 sec)
 ```
+- Установите профилирование `SET profiling = 1`
+```code
+mysql> set profiling = 1;
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+```
+
 - Измените engine MyISAM:
 
 ```commandline
-mysql> ALTER TABLE orders ENGINE = MyISAM;
-Query OK, 5 rows affected (0.54 sec)
+mysql> alter table orders engine = 'MyISAM';
+lter table orders engine = 'InnoDB';Query OK, 5 rows affected (0.08 sec)
 Records: 5  Duplicates: 0  Warnings: 0
 ```
 
 - Измените engine на InnoDB:
 
 ```commandline
-mysql> ALTER TABLE orders ENGINE = InnoDB;
-Query OK, 5 rows affected (1.15 sec)
+mysql> alter table orders engine = 'InnoDB';
+Query OK, 5 rows affected (0.14 sec)
 Records: 5  Duplicates: 0  Warnings: 0
 ```
 
 - Время выполнения и запрос на изменения из профайлера:
 
 ```commandline
-mysql> SHOW PROFILES;
-+----------+------------+------------------------------------------------------------------------------------------------------+
-| Query_ID | Duration   | Query
-       |
-+----------+------------+------------------------------------------------------------------------------------------------------+
-|        1 | 0.00733925 | SELECT table_schema,table_name,engine FROM information_schema.tables WHERE table_schema = DATABASE() |
-|        2 | 0.53345675 | ALTER TABLE orders ENGINE = MyISAM
-       |
-|        3 | 1.15128975 | ALTER TABLE orders ENGINE = InnoDB
-       |
-+----------+------------+------------------------------------------------------------------------------------------------------+
-3 rows in set, 1 warning (0.00 sec)
+mysql> show profiles;
++----------+------------+--------------------------------------+
+| Query_ID | Duration   | Query                                |
++----------+------------+--------------------------------------+
+|        1 | 0.08009575 | alter table orders engine = 'MyISAM' |
+|        2 | 0.13109875 | alter table orders engine = 'InnoDB' |
++----------+------------+--------------------------------------+
+2 rows in set, 1 warning (0.00 sec)
 ```
-
 
 ## Задача 4 
 
@@ -290,27 +294,6 @@ mysql> SHOW PROFILES;
 
 ```text
 bash-4.4# cat /etc/mysql/conf.d/my.cnf
-# Copyright (c) 2017, Oracle and/or its affiliates. All rights reserved.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; version 2 of the License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
-
-#
-# The MySQL  Server configuration file.
-#
-# For explanations see
-# http://dev.mysql.com/doc/mysql/en/server-system-variables.html
-
 [mysqld]
 pid-file        = /var/run/mysqld/mysqld.pid
 socket          = /var/run/mysqld/mysqld.sock
@@ -320,12 +303,12 @@ secure-file-priv= NULL
 # Custom config should go here
 !includedir /etc/mysql/conf.d/
 
-innodb_flush_log_at_trx_commit = 0
+# Netology
+innodb_flush_log_at_trx_commit = 2
 innodb_file_per_table = ON
 innodb_log_buffer_size = 1M
 innodb_buffer_pool_size = 2G
 innodb_log_file_size = 100M
-bash-4.4#
 ```
 
 ---
