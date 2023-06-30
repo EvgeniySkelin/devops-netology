@@ -1,0 +1,5 @@
+cluster.name: netology
+node.name: netology_test
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+http.port: 9200
