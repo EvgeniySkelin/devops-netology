@@ -62,3 +62,4 @@ ansible/homework5.4/stack/grafana/provisioning/dashboards/general_monitor_servic
 ansible/homework5.4/stack/grafana/provisioning/datasources/datasource.yml
 ansible/homework5.4/stack/prometheus/alert.rules
 ansible/homework5.4/stack/prometheus/prometheus.yml
+.idea/*
